@@ -4,7 +4,4 @@ class Face
   def initialize(points)
     @points = points
   end
-
-  def each_point
-  end
 end

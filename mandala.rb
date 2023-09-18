@@ -5,7 +5,6 @@
 #
 require 'opengl'
 require 'glfw'
-require 'cube'
 
 # Press ESC to exit.
 key_callback = GLFW::create_callback(:GLFWkeyfun) do |window, key, scancode, action, mods|
@@ -23,18 +22,6 @@ if __FILE__ == $PROGRAM_NAME
 
   width_buf = ' ' * 8
   height_buf = ' ' * 8
-
-  unit_cube=Cube.new(origin:[-0.5,-0.5,-0.5], volume:1, x:1, y:1, z:1)
-  cubes=[unit_cube]
-  [0,1].each do |xt|
-    [0,1].each do |yt|
-      [0,1].each do |zt|
-        puts "#{xt} #{yt} #{zt}"
-        cubes << unit_cube.transpose(xt,yt,zt)
-      end
-    end
-  end
-
   until GLFW.WindowShouldClose(window) == GLFW::TRUE
     GLFW.GetFramebufferSize(window, width_buf, height_buf)
     width = width_buf.unpack1('L')
@@ -42,54 +29,31 @@ if __FILE__ == $PROGRAM_NAME
     ratio = width.to_f / height.to_f
 
     GL.Viewport(0, 0, width, height)
-    # http://www.opengl-tutorial.org/beginners-tutorials/tutorial-4-a-colored-cube/
-    # need to clear both color buffer and depth buffer
-    GL.Clear(GL::COLOR_BUFFER_BIT | GL::DEPTH_BUFFER_BIT)
+    GL.Clear(GL::COLOR_BUFFER_BIT)
     GL.MatrixMode(GL::PROJECTION)
     GL.LoadIdentity()
     GL.Ortho(-ratio, ratio, -1.0, 1.0, 1.0, -1.0)
     GL.MatrixMode(GL::MODELVIEW)
 
-    # need to have this in order to not just draw in order of shape definition
-    GL.Enable(GL::DEPTH_TEST)
-    GL.DepthFunc(GL::LESS)
-
     GL.LoadIdentity()
     GL.Rotatef(GLFW.GetTime() * 50.0, GLFW.GetTime*25.0, GLFW.GetTime*12.5, 1.0)
 
-=begin
+    GL.Begin(GL::QUADS)
     [0,1,2].each do |rot|
       [-1,1].each do |plane|
         color_vector=[127+plane*63,0,0].rotate(rot)
-        GL.Begin(GL::QUADS)
         [
           [1,1,plane],
-          [1,-1,plane],
-          [-1,-1,plane],
           [-1,1,plane],
+          [-1,-1,plane],
+          [1,-1,plane]
         ].map { |vector| vector.rotate(rot) }.each do |point|
-#          GL.Color3f(*color_vector)
-          GL.Color3f(point[0]*0.5+0.5, point[1]*0.5+0.5, point[2]*0.5+0.5)
+          GL.Color3f(255,255,255)
           GL.Vertex3f(point[0]*0.5, point[1]*0.5, point[2]*0.5)
         end
-        GL.End()
-        GL.Flush()
       end
     end
-=end
-    p cubes
-    cubes.each do |cube|
-      p cube
-      cube.faces.each do |face|
-        GL.Begin(GL::QUADS)
-        face.points.each do |point|
-          GL.Color3f(point[0]*0.5+0.5, point[1]*0.5+0.5, point[2]*0.5+0.5)
-          GL.Vertex3f(point[0]*0.5, point[1]*0.5, point[2]*0.5)
-        end
-        GL.End()
-      end
-    end
-
+    GL.End()
     GLFW.SwapBuffers(window)
     GLFW.PollEvents()
   end
