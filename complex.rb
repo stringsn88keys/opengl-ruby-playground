@@ -57,26 +57,6 @@ if __FILE__ == $PROGRAM_NAME
     GL.LoadIdentity()
     GL.Rotatef(GLFW.GetTime() * 50.0, GLFW.GetTime*25.0, GLFW.GetTime*12.5, 1.0)
 
-=begin
-    [0,1,2].each do |rot|
-      [-1,1].each do |plane|
-        color_vector=[127+plane*63,0,0].rotate(rot)
-        GL.Begin(GL::QUADS)
-        [
-          [1,1,plane],
-          [1,-1,plane],
-          [-1,-1,plane],
-          [-1,1,plane],
-        ].map { |vector| vector.rotate(rot) }.each do |point|
-#          GL.Color3f(*color_vector)
-          GL.Color3f(point[0]*0.5+0.5, point[1]*0.5+0.5, point[2]*0.5+0.5)
-          GL.Vertex3f(point[0]*0.5, point[1]*0.5, point[2]*0.5)
-        end
-        GL.End()
-        GL.Flush()
-      end
-    end
-=end
     cubes.each do |cube|
       cube.faces.each do |face|
         GL.Begin(GL::QUADS)
