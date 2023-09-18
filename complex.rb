@@ -5,7 +5,9 @@
 #
 require 'opengl'
 require 'glfw'
+require 'cube'
 
+ZOOM_OUT = 2
 # Press ESC to exit.
 key_callback = GLFW::create_callback(:GLFWkeyfun) do |window, key, scancode, action, mods|
   GLFW.SetWindowShouldClose(window, 1) if key == GLFW::KEY_ESCAPE && action == GLFW::PRESS
@@ -22,11 +24,22 @@ if __FILE__ == $PROGRAM_NAME
 
   width_buf = ' ' * 8
   height_buf = ' ' * 8
+
+  unit_cube=Cube.new(origin:[-0.5,-0.5,-0.5], volume:1, x:1, y:1, z:1)
+  cubes=[unit_cube]
+  [-1,1].each do |xt|
+    [-1,1].each do |yt|
+      [-1,1].each do |zt|
+        cubes << unit_cube.transpose(xt,yt,zt)
+      end
+    end
+  end
+
   until GLFW.WindowShouldClose(window) == GLFW::TRUE
     GLFW.GetFramebufferSize(window, width_buf, height_buf)
     width = width_buf.unpack1('L')
     height = height_buf.unpack1('L')
-    ratio = width.to_f / height.to_f
+    ratio = width.to_f / height.to_f * ZOOM_OUT
 
     GL.Viewport(0, 0, width, height)
     # http://www.opengl-tutorial.org/beginners-tutorials/tutorial-4-a-colored-cube/
@@ -34,7 +47,7 @@ if __FILE__ == $PROGRAM_NAME
     GL.Clear(GL::COLOR_BUFFER_BIT | GL::DEPTH_BUFFER_BIT)
     GL.MatrixMode(GL::PROJECTION)
     GL.LoadIdentity()
-    GL.Ortho(-ratio, ratio, -1.0, 1.0, 1.0, -1.0)
+    GL.Ortho(-ratio, ratio, -ZOOM_OUT, ZOOM_OUT, ZOOM_OUT, -ZOOM_OUT)
     GL.MatrixMode(GL::MODELVIEW)
 
     # need to have this in order to not just draw in order of shape definition
@@ -44,6 +57,7 @@ if __FILE__ == $PROGRAM_NAME
     GL.LoadIdentity()
     GL.Rotatef(GLFW.GetTime() * 50.0, GLFW.GetTime*25.0, GLFW.GetTime*12.5, 1.0)
 
+=begin
     [0,1,2].each do |rot|
       [-1,1].each do |plane|
         color_vector=[127+plane*63,0,0].rotate(rot)
@@ -62,6 +76,18 @@ if __FILE__ == $PROGRAM_NAME
         GL.Flush()
       end
     end
+=end
+    cubes.each do |cube|
+      cube.faces.each do |face|
+        GL.Begin(GL::QUADS)
+        face.points.each do |point|
+          GL.Color3f(point[0]*0.5+0.5, point[1]*0.5+0.5, point[2]*0.5+0.5)
+          GL.Vertex3f(point[0]*0.5, point[1]*0.5, point[2]*0.5)
+        end
+        GL.End()
+      end
+    end
+
     GLFW.SwapBuffers(window)
     GLFW.PollEvents()
   end

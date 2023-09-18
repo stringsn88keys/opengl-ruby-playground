@@ -3,12 +3,9 @@ class Cube
   attr_accessor :faces
 
   def self.from_cube(cube)
-    new_cube = Cube.new
-    new_cube.faces = cube.faces.map do |face|
-      Face.new(face.points.map(&:dup))
-    end
-    new_cube
+    Marshal.load(Marshal.dump(cube))
   end
+
   def initialize(origin:[0,0,0], volume:1, x:1, y:1, z:1)
     @faces = self.class.unit_cube.dup
     transpose!(origin[0], origin[1], origin[2])
@@ -41,7 +38,7 @@ class Cube
   end
 
   def scale(x,y,z)
-    dup.tap { |d| d.scale!(x,y,z) }
+    Cube.from_cube(self).tap { |d| d.scale!(x,y,z) }
   end
 
   def self.unit_cube
